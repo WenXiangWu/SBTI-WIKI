@@ -160,14 +160,26 @@
     document.querySelector('meta[name="theme-color"]').content = isDark ? '#0a0a0a' : '#ffffff';
   });
 
+  // ---------- Rarity helpers ----------
+  function rarityTier(pct) {
+    if (pct >= 5)  return { cls: 'bg-slate-400/90', label: '常见' };
+    if (pct >= 2)  return { cls: 'bg-blue-500/90', label: '中等' };
+    if (pct >= 1)  return { cls: 'bg-purple-500/90', label: '稀有' };
+    return { cls: 'bg-amber-500/90', label: '极稀有' };
+  }
+
   // ---------- Card rendering ----------
   function cardHTML(o) {
-    const badge = o.isSpecial
-      ? `<span class="absolute top-1.5 right-1.5 text-xs bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-medium">${o.code === 'HHHH' ? '兜底' : '隐藏'}</span>`
+    const specialBadge = o.isSpecial
+      ? `<span class="absolute top-1.5 left-1.5 text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-medium z-10">${o.code === 'HHHH' ? '兜底' : '隐藏'}</span>`
       : '';
+    const r = o.rarity;
+    const tier = rarityTier(r.percent);
+    const rarityBadge = `<span class="absolute top-1.5 right-1.5 text-[10px] ${tier.cls} text-white px-1.5 py-0.5 rounded-full font-bold z-10 backdrop-blur-sm shadow">${r.percent}%</span>`;
     return `
       <button data-code="${o.code}" class="card relative text-left rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md active:shadow-sm">
-        ${badge}
+        ${specialBadge}
+        ${rarityBadge}
         <div class="card-img bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
           <img src="${o.image}" alt="${o.code} ${o.cn}" loading="lazy" class="w-full h-full object-contain">
         </div>
@@ -238,6 +250,23 @@
           <div class="text-base sm:text-lg text-slate-600 dark:text-slate-400 mt-0.5">${o.cn}</div>
           <div class="mt-2 text-sm italic text-slate-500 dark:text-slate-500">"${o.intro}"</div>
         </div>
+
+        <!-- Rarity badge -->
+        ${(() => {
+          const tier = rarityTier(o.rarity.percent);
+          return `
+          <div class="mb-4 flex items-center justify-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full ${tier.cls} text-white shadow-lg">
+              <span class="text-lg">🎲</span>
+              <div class="text-left">
+                <div class="text-xs opacity-90 leading-tight">理论稀有度 · ${tier.label}</div>
+                <div class="text-sm font-bold leading-tight">${o.rarity.percent}% · 约 1/${o.rarity.oneInX}</div>
+              </div>
+            </div>
+          </div>
+          <p class="mb-4 text-center text-[10px] text-slate-400 dark:text-slate-500">⚠️ 模拟采样估算，非真实用户统计</p>
+          `;
+        })()}
 
         ${o.pattern ? `
           <div class="mb-4 flex items-center justify-center">
@@ -327,7 +356,7 @@
     if (!currentCode) return;
     const o = byCode[currentCode];
     const url = shareUrl();
-    const text = `我的 SBTI 人格是 ${o.code}（${o.cn}）—— ${o.oneLiner}`;
+    const text = `我的 SBTI 人格是 ${o.code}（${o.cn}）—— ${o.oneLiner}\n🎲 理论稀有度 ${o.rarity.percent}%（约 1/${o.rarity.oneInX}）`;
     if (navigator.share) {
       try {
         await navigator.share({ title: `SBTI · ${o.code} ${o.cn}`, text, url });
