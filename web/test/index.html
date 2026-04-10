@@ -235,40 +235,16 @@
 
     .topbar {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .topbar-main {
-      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .btn-atlas {
-      flex-shrink: 0;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 14px;
-      text-decoration: none;
-      color: var(--accent-strong);
-      border: 1px solid var(--line);
-      background: var(--soft);
-      transition: transform .16s ease, border-color .16s ease, background .16s ease;
-    }
-
-    .btn-atlas:hover {
-      transform: translateY(-1px);
-      border-color: var(--accent);
-      background: var(--surface);
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
     }
 
     .progress {
       flex: 1;
-      min-width: 0;
+      min-width: 240px;
       height: 10px;
       background: var(--progress-track);
       border-radius: 999px;
@@ -758,15 +734,19 @@
 <body class="bg-[var(--bg)] text-[var(--text)] transition-colors duration-200">
   <header class="sticky top-0 z-40 backdrop-blur-lg bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800" style="padding-top: env(safe-area-inset-top);">
     <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <a href="../index.html" id="navAtlas" class="flex items-center gap-2 min-w-0 group">
-        <span class="text-2xl shrink-0">🎭</span>
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-2xl shrink-0" aria-hidden="true">🎭</span>
         <div class="min-w-0 text-left">
-          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">图鉴</div>
-          <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">27 种结局</p>
+          <h1 class="text-sm sm:text-base font-bold truncate text-slate-900 dark:text-slate-100">SBTI · 测评</h1>
+          <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">在线人格测试</p>
         </div>
-      </a>
-      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-        <span class="hidden sm:inline text-xs font-semibold text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/50">测评</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <a href="../index.html" id="navAtlas" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-sm font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 active:scale-95 transition" title="前往 27 种结局图鉴">
+          <span aria-hidden="true">📚</span>
+          <span class="hidden sm:inline">图鉴</span>
+          <span class="sm:hidden">鉴</span>
+        </a>
         <button type="button" id="theme-toggle-test" aria-label="切换深色模式" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition text-slate-700 dark:text-slate-200">
           <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
@@ -790,10 +770,7 @@
     <section id="test" class="screen">
       <div class="test-wrap card">
         <div class="topbar">
-          <div class="topbar-main">
-            <div class="progress"><span id="progressBar"></span></div>
-            <a href="../index.html" class="btn-atlas" id="atlasFromTest" title="前往 27 种结局图鉴">图鉴</a>
-          </div>
+          <div class="progress"><span id="progressBar"></span></div>
           <div class="progress-text" id="progressText">0 / 31</div>
         </div>
 
@@ -1865,7 +1842,6 @@
       }
     }
     document.getElementById('navAtlas').addEventListener('click', tryLeaveToAtlas);
-    document.getElementById('atlasFromTest').addEventListener('click', tryLeaveToAtlas);
 
     const params = new URLSearchParams(location.search);
     if (params.get('start') === '1') {
