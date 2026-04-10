@@ -235,16 +235,40 @@
 
     .topbar {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 18px;
-      flex-wrap: wrap;
+    }
+
+    .topbar-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .btn-atlas {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      color: var(--accent-strong);
+      border: 1px solid var(--line);
+      background: var(--soft);
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .btn-atlas:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+      background: var(--surface);
     }
 
     .progress {
       flex: 1;
-      min-width: 240px;
+      min-width: 0;
       height: 10px;
       background: var(--progress-track);
       border-radius: 999px;
@@ -277,6 +301,16 @@
       border-radius: 18px;
       padding: 18px;
       background: linear-gradient(180deg, var(--surface), var(--surface-grad2));
+      scroll-margin-top: 96px;
+    }
+
+    .question.question-jump-target {
+      box-shadow: 0 0 0 3px rgba(77, 106, 83, 0.45);
+      transition: box-shadow .25s ease;
+    }
+
+    html.dark .question.question-jump-target {
+      box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.4);
     }
 
     .question-meta {
@@ -724,11 +758,11 @@
 <body class="bg-[var(--bg)] text-[var(--text)] transition-colors duration-200">
   <header class="sticky top-0 z-40 backdrop-blur-lg bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800" style="padding-top: env(safe-area-inset-top);">
     <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <a href="../index.html" class="flex items-center gap-2 min-w-0 group">
+      <a href="../index.html" id="navAtlas" class="flex items-center gap-2 min-w-0 group">
         <span class="text-2xl shrink-0">🎭</span>
         <div class="min-w-0 text-left">
-          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">SBTI · 图鉴</div>
-          <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">返回 27 种结局</p>
+          <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">图鉴</div>
+          <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">27 种结局</p>
         </div>
       </a>
       <div class="flex items-center gap-1 sm:gap-2 shrink-0">
@@ -756,7 +790,10 @@
     <section id="test" class="screen">
       <div class="test-wrap card">
         <div class="topbar">
-          <div class="progress"><span id="progressBar"></span></div>
+          <div class="topbar-main">
+            <div class="progress"><span id="progressBar"></span></div>
+            <a href="../index.html" class="btn-atlas" id="atlasFromTest" title="前往 27 种结局图鉴">图鉴</a>
+          </div>
           <div class="progress-text" id="progressText">0 / 31</div>
         </div>
 
@@ -766,7 +803,7 @@
           <div class="hint" id="testHint">全选完才会放行。世界已经够乱了，起码把题做完整。</div>
           <div style="display:flex; gap:12px; flex-wrap:wrap;">
             <button id="backIntroBtn" type="button" class="btn-secondary">返回测评首页</button>
-            <button id="submitBtn" type="button" class="btn-primary" disabled>提交并查看结果</button>
+            <button id="submitBtn" type="button" class="btn-primary">提交并查看结果</button>
           </div>
         </div>
       </div>
@@ -1565,6 +1602,7 @@
       visibleQuestions.forEach((q, index) => {
         const card = document.createElement('article');
         card.className = 'question';
+        card.id = 'question-' + q.id;
         card.innerHTML = `
           <div class="question-meta">
             <div class="badge">第 ${index + 1} 题</div>
@@ -1616,10 +1654,41 @@
       progressBar.style.width = `${percent}%`;
       progressText.textContent = `${done} / ${total}`;
       const complete = done === total && total > 0;
-      submitBtn.disabled = !complete;
       testHint.textContent = complete
         ? '都做完了。现在可以把你的电子魂魄交给结果页审判。'
-        : '全选完才会放行。世界已经够乱了，起码把题做完整。';
+        : '还有未选题目时，点「提交并查看结果」会自动跳转到第一道未填题。';
+    }
+
+    function scrollToFirstUnanswered() {
+      const visibleQuestions = getVisibleQuestions();
+      const first = visibleQuestions.find(q => app.answers[q.id] === undefined);
+      if (!first) return false;
+
+      document.querySelectorAll('.question-jump-target').forEach((el) => {
+        el.classList.remove('question-jump-target');
+      });
+
+      const el = document.getElementById('question-' + first.id);
+      const idx = visibleQuestions.indexOf(first) + 1;
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('question-jump-target');
+        window.setTimeout(() => el.classList.remove('question-jump-target'), 2200);
+      }
+      testHint.textContent = `第 ${idx} 题尚未选择，请先完成（共 ${visibleQuestions.length} 题）。`;
+      return true;
+    }
+
+    function handleSubmitClick() {
+      const visibleQuestions = getVisibleQuestions();
+      const total = visibleQuestions.length;
+      if (!total) return;
+      const complete = visibleQuestions.every((q) => app.answers[q.id] !== undefined);
+      if (!complete) {
+        scrollToFirstUnanswered();
+        return;
+      }
+      renderResult();
     }
 
     function sumToLevel(score) {
@@ -1784,9 +1853,24 @@
       if (n > 0 && !window.confirm('返回将留在本页介绍；已选答案不会保存，确定返回？')) return;
       showScreen('intro');
     });
-    document.getElementById('submitBtn').addEventListener('click', renderResult);
+    document.getElementById('submitBtn').addEventListener('click', handleSubmitClick);
     document.getElementById('restartBtn').addEventListener('click', () => startTest(false));
     document.getElementById('toTopBtn').addEventListener('click', () => showScreen('intro'));
+
+    function tryLeaveToAtlas(e) {
+      if (screens.test.classList.contains('active') && Object.keys(app.answers).length > 0) {
+        if (!window.confirm('离开将丢失当前答题进度，确定前往图鉴？')) {
+          e.preventDefault();
+        }
+      }
+    }
+    document.getElementById('navAtlas').addEventListener('click', tryLeaveToAtlas);
+    document.getElementById('atlasFromTest').addEventListener('click', tryLeaveToAtlas);
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('start') === '1') {
+      startTest(false);
+    }
 
     const themeBtn = document.getElementById('theme-toggle-test');
     const metaTheme = document.querySelector('meta[name="theme-color"]');
